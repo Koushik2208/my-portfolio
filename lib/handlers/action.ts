@@ -1,23 +1,29 @@
 "use server";
 
+import { Session } from "next-auth";
 import { ZodError, ZodSchema } from "zod";
+
+import { auth } from "@/auth";
+
+import { UnauthorizedError, ValidationError } from "../http-errors";
 import dbConnect from "../mongoose";
-import { ValidationError } from "../http-errors";
 
 type ActionOptions<T> = {
   params?: T;
   schema?: ZodSchema<T>;
-  authorize?: boolean; // Now ignored — kept for future use
+  authorize?: boolean;
 };
 
-// Validates params and connects to DB
-// Authentication is skipped (no session, no auth check)
+// 1. Checking whether the schema and params are provided and validated.
+// 2. Checking whether the user is authorized.
+// 3. Connecting to the database.
+// 4. Returning the params and session.
+
 async function action<T>({
   params,
   schema,
-}: // authorize is ignored for now
-ActionOptions<T>) {
-  // 1. Validate params against schema (if provided)
+  authorize = false,
+}: ActionOptions<T>) {
   if (schema && params) {
     try {
       schema.parse(params);
@@ -32,11 +38,19 @@ ActionOptions<T>) {
     }
   }
 
-  // 2. Connect to database
+  let session: Session | null = null;
+
+  if (authorize) {
+    session = await auth();
+
+    if (!session) {
+      return new UnauthorizedError();
+    }
+  }
+
   await dbConnect();
 
-  // 3. Return validated params (no session)
-  return { params };
+  return { params, session };
 }
 
 export default action;

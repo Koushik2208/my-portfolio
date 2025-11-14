@@ -7,8 +7,8 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { AddProjectSchema } from "@/lib/validations";
-import { addProject, updateProject } from "@/lib/actions/project.action";
+import { AddBlogSchema } from "@/lib/validations";
+import { addBlog, updateBlog } from "@/lib/actions/blog.action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,19 +18,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import FileUpload from "@/components/FileUpload";
 import Editor from "@/components/Editor";
 import { Card } from "@/components/ui/card";
 
-type ProjectFormData = z.infer<typeof AddProjectSchema>;
+type BlogFormData = z.infer<typeof AddBlogSchema>;
 
-interface ProjectFormProps {
-  initialData?: ProjectFormData & { _id?: string };
+interface BlogFormProps {
+  initialData?: BlogFormData & { _id?: string };
 }
 
-export default function ProjectForm({ initialData }: ProjectFormProps) {
+export default function BlogForm({ initialData }: BlogFormProps) {
   const router = useRouter();
   const isEditMode = !!initialData;
   const [isPending, startTransition] = useTransition();
@@ -38,43 +37,38 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
     "idle" | "loading" | "success" | "error"
   >("idle");
 
-  const form = useForm<ProjectFormData>({
-    resolver: zodResolver(AddProjectSchema),
+  const form = useForm<BlogFormData>({
+    resolver: zodResolver(AddBlogSchema),
     defaultValues: {
-      name: initialData?.name || "",
+      title: initialData?.title || "",
       description: initialData?.description || "",
       image: initialData?.image || "",
-      url: initialData?.url || "",
-      github: initialData?.github || "",
-      techStack: initialData?.techStack || [],
-      category: initialData?.category || "",
-      featured: initialData?.featured || false,
     },
   });
 
-  const onSubmit = async (data: ProjectFormData) => {
+  const onSubmit = async (data: BlogFormData) => {
     setStatus("loading");
 
     try {
       let result: ActionResponse<any>;
       
       if (isEditMode && initialData?._id) {
-        result = await updateProject(initialData._id, data);
+        result = await updateBlog(initialData._id, data);
       } else {
-        result = await addProject(data as AddProjectParams);
+        result = await addBlog(data);
       }
 
       if (result.success) {
         toast.success(
-          isEditMode ? "Project updated successfully!" : "Project created successfully!"
+          isEditMode ? "Blog updated successfully!" : "Blog created successfully!"
         );
         startTransition(() => {
-          router.push("/dashboard/projects");
+          router.push("/dashboard/blogs");
         });
       } else {
         setStatus("error");
         toast.error(
-          isEditMode ? "Failed to update project" : "Failed to create project"
+          isEditMode ? "Failed to update blog" : "Failed to create blog"
         );
       }
     } catch (error: unknown) {
@@ -89,12 +83,12 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
       <Card className="w-full max-w-4xl p-8 shadow-2xl border-0">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">
-            {isEditMode ? "Edit Project" : "Create New Project"}
+            {isEditMode ? "Edit Blog" : "Create New Blog"}
           </h1>
           <p className="text-muted-foreground mt-2">
             {isEditMode
-              ? "Update your project details"
-              : "Add a new project to your portfolio"}
+              ? "Update your blog post"
+              : "Write a new blog post"}
           </p>
         </div>
 
@@ -103,15 +97,15 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-6 font-manrope"
           >
-          {/* Name */}
+          {/* Title */}
           <FormField
             control={form.control}
-            name="name"
+            name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Project Name</FormLabel>
+                <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Project name" {...field} />
+                  <Input placeholder="Blog title" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -129,7 +123,7 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
                   <Editor
                     value={field.value || ""}
                     onChange={field.onChange}
-                    placeholder="Write your project description in markdown..."
+                    placeholder="Write your blog content in markdown..."
                   />
                 </FormControl>
                 <FormMessage />
@@ -143,7 +137,7 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
             name="image"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Project Image</FormLabel>
+                <FormLabel>Featured Image</FormLabel>
                 <FormControl>
                   <FileUpload
                     value={field.value}
@@ -152,72 +146,6 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Live URL */}
-          <FormField
-            control={form.control}
-            name="url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Live URL</FormLabel>
-                <FormControl>
-                  <Input
-                    type="url"
-                    placeholder="https://example.com"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormDescription>Optional: Link to live project</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* GitHub URL */}
-          <FormField
-            control={form.control}
-            name="github"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>GitHub URL</FormLabel>
-                <FormControl>
-                  <Input
-                    type="url"
-                    placeholder="https://github.com/username/repo"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormDescription>Optional: Link to GitHub repository</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Featured */}
-          <FormField
-            control={form.control}
-            name="featured"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <input
-                    type="checkbox"
-                    checked={field.value}
-                    onChange={field.onChange}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Featured Project</FormLabel>
-                  <FormDescription>
-                    Show this project as featured on your portfolio
-                  </FormDescription>
-                </div>
               </FormItem>
             )}
           />
@@ -234,15 +162,15 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
                   ? "Updating..."
                   : "Creating..."
                 : isEditMode
-                ? "Update Project"
-                : "Create Project"}
+                ? "Update Blog"
+                : "Create Blog"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => {
                 startTransition(() => {
-                  router.push("/dashboard/projects");
+                  router.push("/dashboard/blogs");
                 });
               }}
               disabled={status === "loading" || isPending}
@@ -256,3 +184,4 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
     </div>
   );
 }
+

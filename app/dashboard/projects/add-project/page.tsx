@@ -1,11 +1,5 @@
 import ProjectForm from "@/components/dashboard/ProjectForm";
 
-const AddProject = () => {
-  return (
-    <div>
-      <ProjectForm />
-    </div>
-  );
-};
-
-export default AddProject;
+export default function AddProjectPage() {
+  return <ProjectForm />;
+}

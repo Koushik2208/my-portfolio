@@ -1,63 +1,47 @@
 "use server";
 
 import mongoose from "mongoose";
-import Project, { IProject, IProjectDoc } from "@/database/project.model";
+import Blog, { IBlog } from "@/database/blog.model";
 import handleError from "../handlers/error";
-import { AddProjectSchema, UpdateProjectSchema } from "../validations";
+import { AddBlogSchema, UpdateBlogSchema } from "../validations";
 import action from "../handlers/action";
 
-export async function addProject(
-  params: AddProjectParams
-): Promise<ActionResponse<IProject>> {
+export async function addBlog(
+  params: AddBlogParams
+): Promise<ActionResponse<IBlog>> {
   const validationResult = await action({
     params,
-    schema: AddProjectSchema,
-    // No authorize: true → allows unauthenticated calls
+    schema: AddBlogSchema,
   });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const {
-    name,
-    description,
-    image,
-    url,
-    github,
-    techStack = [],
-    category,
-    featured,
-  } = validationResult.params!;
+  const { title, description, image } = validationResult.params!;
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const [project] = await Project.create(
+    const [blog] = await Blog.create(
       [
         {
-          name,
+          title,
           description,
           image,
-          url,
-          github,
-          techStack,
-          category,
-          featured,
-          // No author field since no auth
         },
       ],
       { session }
     );
 
-    if (!project) throw new Error("Failed to create the project");
+    if (!blog) throw new Error("Failed to create the blog");
 
     await session.commitTransaction();
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(project)),
+      data: JSON.parse(JSON.stringify(blog)),
     };
   } catch (error) {
     await session.abortTransaction();
@@ -67,27 +51,27 @@ export async function addProject(
   }
 }
 
-export async function getProjects(): Promise<ActionResponse<IProject[]>> {
+export async function getBlogs(): Promise<ActionResponse<IBlog[]>> {
   try {
     const validationResult = await action({});
     if (validationResult instanceof Error) {
       return handleError(validationResult) as ErrorResponse;
     }
     
-    const projects = await Project.find({}).sort({ createdAt: -1 }).lean();
+    const blogs = await Blog.find({}).sort({ createdAt: -1 }).lean();
     
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(projects)),
+      data: JSON.parse(JSON.stringify(blogs)),
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
 }
 
-export async function getProject(
+export async function getBlog(
   id: string
-): Promise<ActionResponse<IProject>> {
+): Promise<ActionResponse<IBlog>> {
   try {
     const validationResult = await action({});
     if (validationResult instanceof Error) {
@@ -95,31 +79,31 @@ export async function getProject(
     }
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return handleError(new Error("Invalid project ID")) as ErrorResponse;
+      return handleError(new Error("Invalid blog ID")) as ErrorResponse;
     }
     
-    const project = await Project.findById(id).lean();
+    const blog = await Blog.findById(id).lean();
     
-    if (!project) {
-      return handleError(new Error("Project not found")) as ErrorResponse;
+    if (!blog) {
+      return handleError(new Error("Blog not found")) as ErrorResponse;
     }
     
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(project)),
+      data: JSON.parse(JSON.stringify(blog)),
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
 }
 
-export async function updateProject(
+export async function updateBlog(
   id: string,
-  params: UpdateProjectParams
-): Promise<ActionResponse<IProject>> {
+  params: UpdateBlogParams
+): Promise<ActionResponse<IBlog>> {
   const validationResult = await action({
     params,
-    schema: UpdateProjectSchema,
+    schema: UpdateBlogSchema,
   });
 
   if (validationResult instanceof Error) {
@@ -127,14 +111,14 @@ export async function updateProject(
   }
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return handleError(new Error("Invalid project ID")) as ErrorResponse;
+    return handleError(new Error("Invalid blog ID")) as ErrorResponse;
   }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const project = await Project.findByIdAndUpdate(
+    const blog = await Blog.findByIdAndUpdate(
       id,
       {
         ...validationResult.params,
@@ -142,15 +126,15 @@ export async function updateProject(
       { new: true, session }
     );
 
-    if (!project) {
-      throw new Error("Project not found");
+    if (!blog) {
+      throw new Error("Blog not found");
     }
 
     await session.commitTransaction();
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(project)),
+      data: JSON.parse(JSON.stringify(blog)),
     };
   } catch (error) {
     await session.abortTransaction();
@@ -160,7 +144,7 @@ export async function updateProject(
   }
 }
 
-export async function deleteProject(
+export async function deleteBlog(
   id: string
 ): Promise<ActionResponse<void>> {
   try {
@@ -170,17 +154,17 @@ export async function deleteProject(
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return handleError(new Error("Invalid project ID")) as ErrorResponse;
+      return handleError(new Error("Invalid blog ID")) as ErrorResponse;
     }
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const project = await Project.findByIdAndDelete(id).session(session);
+      const blog = await Blog.findByIdAndDelete(id).session(session);
 
-      if (!project) {
-        throw new Error("Project not found");
+      if (!blog) {
+        throw new Error("Blog not found");
       }
 
       await session.commitTransaction();
@@ -199,3 +183,4 @@ export async function deleteProject(
     return handleError(error) as ErrorResponse;
   }
 }
+

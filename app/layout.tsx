@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const sora = localFont({
   src: "./fonts/Sora-VariableFont_wght.ttf",
@@ -44,12 +45,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
+          {children}
+          <Toaster />
         </ThemeProvider>
-
-        <main className="flex-1 overflow-y-auto">
-          <div className="min-h-full">{children}</div>
-        </main>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
-import { model, models, Schema } from "mongoose";
+import { model, models, Schema, Types } from "mongoose";
 
 export interface IProject {
+  _id?: Types.ObjectId | string;
   name: string;
   description: string;
   image?: string;
@@ -13,6 +14,7 @@ export interface IProject {
   updatedAt?: Date;
 }
 
+export interface IProjectDoc extends IProject, Document {}
 const ProjectSchema = new Schema<IProject>(
   {
     name: { type: String, required: true },

@@ -1,6 +1,7 @@
-import { model, models, Schema } from "mongoose";
+import { model, models, Schema, Types } from "mongoose";
 
 export interface IBlog {
+  _id?: Types.ObjectId | string;
   title: string;
   description: string;
   image?: string;
