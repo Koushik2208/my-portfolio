@@ -1,8 +1,9 @@
+export const dynamic = "force-dynamic";
 import { getProjects } from "@/lib/actions/project.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 import { Image } from "@imagekit/next";
 import DeleteProjectButton from "@/components/dashboard/DeleteProjectButton";
 
@@ -23,7 +24,10 @@ export default async function ProjectsPage() {
     <div className="container mx-auto space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl md:text-3xl font-bold">Projects</h1>
-        <Link href="/dashboard/projects/add-project" className="w-full sm:w-auto">
+        <Link
+          href="/dashboard/projects/add-project"
+          className="w-full sm:w-auto"
+        >
           <Button className="font-manrope w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Project
@@ -88,7 +92,9 @@ export default async function ProjectsPage() {
                       Edit
                     </Button>
                   </Link>
-                  <DeleteProjectButton projectId={project._id?.toString() || ""} />
+                  <DeleteProjectButton
+                    projectId={project._id?.toString() || ""}
+                  />
                 </div>
               </CardContent>
             </Card>
