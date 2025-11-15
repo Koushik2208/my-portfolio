@@ -1,7 +1,7 @@
-import { model, models, Schema, Types } from "mongoose";
+import { model, models, Schema } from "mongoose";
 
 export interface IProject {
-  _id?: Types.ObjectId | string;
+  _id?: string;
   name: string;
   description: string;
   image?: string;

@@ -67,15 +67,16 @@ export async function addProject(
   }
 }
 
-export async function getProjects(): Promise<ActionResponse<IProject[]>> {
+export async function getProjects(): Promise<ActionResponse<IProjectDoc[]>> {
   try {
+    console.log("getProjects");
     const validationResult = await action({});
     if (validationResult instanceof Error) {
       return handleError(validationResult) as ErrorResponse;
     }
-    
+
     const projects = await Project.find({}).sort({ createdAt: -1 }).lean();
-    
+    console.log(projects, "projects");
     return {
       success: true,
       data: JSON.parse(JSON.stringify(projects)),
@@ -93,17 +94,17 @@ export async function getProject(
     if (validationResult instanceof Error) {
       return handleError(validationResult) as ErrorResponse;
     }
-    
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return handleError(new Error("Invalid project ID")) as ErrorResponse;
     }
-    
+
     const project = await Project.findById(id).lean();
-    
+
     if (!project) {
       return handleError(new Error("Project not found")) as ErrorResponse;
     }
-    
+
     return {
       success: true,
       data: JSON.parse(JSON.stringify(project)),
@@ -160,9 +161,7 @@ export async function updateProject(
   }
 }
 
-export async function deleteProject(
-  id: string
-): Promise<ActionResponse<void>> {
+export async function deleteProject(id: string): Promise<ActionResponse<void>> {
   try {
     const validationResult = await action({});
     if (validationResult instanceof Error) {
